@@ -3,19 +3,20 @@ CREATE DATABASE v0kahe03;
 
 USE v0kahe03;
 
-/* Luodaan taulut */
+/* Luodaan taulu käyttäjätiedoista: */
 CREATE TABLE user (
     id int primary key auto_increment,
-    username varchar(40) text not null,
-    password varchar(40) text not null
+    username varchar(40) not null,
+    password varchar(40) not null
 );
 
+/* Luodaan taulu käyttäjän yksityisistä tiedoista: */
 CREATE TABLE info (
     id int primary key auto_increment,
-    firstname varchar(40) text not null,
-    lastname varchar(40) text not null,
+    firstname varchar(40) not null,
+    lastname varchar(40) not null,
     userid int not null, 
-    index userid(userid),
-    foreign key (userid) references user(id)
+    index user_id(user_id),
+    foreign key (user_id) references user(id)
     on delete restrict
 );

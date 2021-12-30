@@ -3,19 +3,36 @@ session_start();
 require('headers.php');
 require('functions.php');
 
-// Tarkistetaan, tuleeko palvelimelle basic login -tiedot
-if( isset($_SERVER['PHP_AUTH_USER']) ){
-    if(checkUser(createDbConnection(), $_SERVER['PHP_AUTH_USER'],$_SERVER["PHP_AUTH_PW"] )){
-        $_SESSION["user"] = $_SERVER['PHP_AUTH_USER'];
-        echo '{"info":"Kirjauduit sisään!"}';
-        header('Content-Type: application/json');
-        exit;
-    }
-}
-header('Www-Authenticate: Basic');
+$username = filter_input(INPUT_POST,'username',FILTER_SANITIZE_STRING);
+$password = filter_input(INPUT_POST,'password',FILTER_SANITIZE_STRING);
 
-//Kehotetaan käyttäjää kirjautumaan sisään avaamalla login-ikkuna
-echo '{"info":"Epäonnistunut kirjautuminen."}';
-header('Content-Type: application/json');
-header('HTTP/1.1 401');
-exit;
+$sql = "select * from user where username='$username'";
+
+try {
+  $dbcon = createDbConnection();
+  $query = $dbcon->query($sql);
+  $user = $query->fetch(PDO::FETCH_OBJ);
+  if ($user) {
+    $passwordFromDb = $user->password;
+    if (password_verify($password,$passwordFromDb)) {
+      header('HTTP/1.1 200 OK');
+      $data = array(
+        'id' => $user->id,
+        'lname' => $user->lname,
+        'fname' => $user->fname
+      );
+      $_SESSION['user'] = $user;
+    } else {
+      header('HTTP/1.1 401 Unauthorized');
+      $data = array('message' => "Unsuccessfull login.");
+    }
+  } else {
+    header('HTTP/1.1 401 Unauthorized');
+    $data = array('message' => "Unsuccessfull login.");
+  }
+
+  echo json_encode($data);
+} catch (PDOException $pdoex) {
+  returnError($pdoex); 
+}
+?>

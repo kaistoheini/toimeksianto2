@@ -55,3 +55,15 @@ function createDbConnection(){
 
     return $dbcon;
 }
+
+function returnError(PDOException $pdoex) {
+    header('HTTP/1.1 500 Internal Server Error');
+    $error = array('error' => $pdoex->getMessage());
+    print json_encode($error);
+}
+
+function executeInsert(object $db,string $sql): int {
+    $query = $db->query($sql);
+    return $db->lastInsertId();
+}
+?>
